@@ -1,0 +1,36 @@
+defaults:
+  env:
+    GIT_REF: develop
+  resources:
+    instance-type: P6000
+
+jobs:
+  clone-repo:
+    uses: git-checkout@v1
+    with:
+      url: https://github.com/donaghhorgan/gradient-test
+      ref: $GIT_REF
+    outputs:
+      repo:
+        type: volume
+
+  dummy-job:
+    needs:
+      - clone-repo
+    uses: script@v1
+    with:
+      script: |-
+        echo "Inputs: "
+        ls -la /inputs/data
+      image: nvcr.io/nvidia/pytorch:21.02-py3
+    inputs:
+      repo: clone-repo.outputs.repo
+      data:
+        type: dataset
+        with:
+          ref: blindbot-data
+    outputs:
+      models:
+        type: dataset
+        with:
+          ref: blindbot-models
